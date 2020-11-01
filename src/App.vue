@@ -47,7 +47,5 @@ body {
   height: 100vh;
 }
 
-.root__chat {
-  
-}
+.root__chat {}
 </style>
