@@ -8,6 +8,16 @@ export const onCreateUser = /* GraphQL */ `
       name
       imageUrl
       status
+      chatRoomUsers {
+        items {
+          id
+          userID
+          chatRoomID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
@@ -20,6 +30,16 @@ export const onUpdateUser = /* GraphQL */ `
       name
       imageUrl
       status
+      chatRoomUsers {
+        items {
+          id
+          userID
+          chatRoomID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }
@@ -32,6 +52,172 @@ export const onDeleteUser = /* GraphQL */ `
       name
       imageUrl
       status
+      chatRoomUsers {
+        items {
+          id
+          userID
+          chatRoomID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreateChatRoomUser = /* GraphQL */ `
+  subscription OnCreateChatRoomUser {
+    onCreateChatRoomUser {
+      id
+      userID
+      chatRoomID
+      user {
+        id
+        name
+        imageUrl
+        status
+        chatRoomUsers {
+          nextToken
+        }
+        createdAt
+        updatedAt
+      }
+      chatRoom {
+        id
+        name
+        imageUrl
+        status
+        chatRoomUsers {
+          nextToken
+        }
+        createdAt
+        updatedAt
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdateChatRoomUser = /* GraphQL */ `
+  subscription OnUpdateChatRoomUser {
+    onUpdateChatRoomUser {
+      id
+      userID
+      chatRoomID
+      user {
+        id
+        name
+        imageUrl
+        status
+        chatRoomUsers {
+          nextToken
+        }
+        createdAt
+        updatedAt
+      }
+      chatRoom {
+        id
+        name
+        imageUrl
+        status
+        chatRoomUsers {
+          nextToken
+        }
+        createdAt
+        updatedAt
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeleteChatRoomUser = /* GraphQL */ `
+  subscription OnDeleteChatRoomUser {
+    onDeleteChatRoomUser {
+      id
+      userID
+      chatRoomID
+      user {
+        id
+        name
+        imageUrl
+        status
+        chatRoomUsers {
+          nextToken
+        }
+        createdAt
+        updatedAt
+      }
+      chatRoom {
+        id
+        name
+        imageUrl
+        status
+        chatRoomUsers {
+          nextToken
+        }
+        createdAt
+        updatedAt
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreateChatRoom = /* GraphQL */ `
+  subscription OnCreateChatRoom {
+    onCreateChatRoom {
+      id
+      chatRoomUsers {
+        items {
+          id
+          userID
+          chatRoomID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdateChatRoom = /* GraphQL */ `
+  subscription OnUpdateChatRoom {
+    onUpdateChatRoom {
+      id
+      chatRoomUsers {
+        items {
+          id
+          userID
+          chatRoomID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeleteChatRoom = /* GraphQL */ `
+  subscription OnDeleteChatRoom {
+    onDeleteChatRoom {
+      id
+      chatRoomUsers {
+        items {
+          id
+          userID
+          chatRoomID
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
       createdAt
       updatedAt
     }

@@ -1,7 +1,7 @@
 <template>
   <div>
     <ul>
-      <li v-for="user in users" :key="user.id">
+      <li v-for="user in users" :key="user.id" v-on:click="createChatRoomCb(user)">
         <div class="user">
           <div class="user__image">
             <img v-bind:src="user.imageUrl" v-bind:alt="user.imageUrl">
@@ -22,33 +22,22 @@
 
 <script>
 
-import {API, graphqlOperation} from "aws-amplify";
-import {listUsers} from "@/graphql/queries";
-import * as R from 'ramda';
-
 export default {
   name: 'UserList',
-  props: {},
-  data() {
-    return {
-      users: [],
-      nextToken: null
-    };
-  },
-  created() {
-    this.fetchUsers();
-  },
-  methods: {
-    async fetchUsers() {
-      try {
-        const usersData = await API.graphql(graphqlOperation(listUsers));
-        this.users = R.path(['data', 'listUsers', 'items'])(usersData);
-        this.nextToken = R.path(['data', 'listUsers', 'nextToken'])(usersData);
-      } catch (e) {
-        console.log(e);
-      }
+  props: {
+    createChatRoomCb: {
+      type: Function
+    },
+    currentUserID: {
+      type: String
+    },
+    users: {
+      type: Array
+    },
+    nextToken: {
+      type: String
     }
-  }
+  },
 }
 </script>
 
@@ -63,6 +52,7 @@ export default {
     list-style: none;
     border-bottom: 1px solid #ccc;
     padding: 8px;
+    cursor: pointer;
   }
 
   .user {
