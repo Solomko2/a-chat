@@ -64,9 +64,6 @@ export const getChatRoomUser = /* GraphQL */ `
       }
       chatRoom {
         id
-        name
-        imageUrl
-        status
         chatRoomUsers {
           nextToken
         }
@@ -99,9 +96,6 @@ export const listChatRoomUsers = /* GraphQL */ `
         }
         chatRoom {
           id
-          name
-          imageUrl
-          status
           createdAt
           updatedAt
         }

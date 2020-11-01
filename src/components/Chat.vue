@@ -2,13 +2,14 @@
   <div class="chat-view">
     <span v-if="pending">Loading ...</span>
     <div class="chat-view__sidebar">
+      <span>{{currentUserName}}</span>
       <UserList :users="users"
                 :currentUserID="currentUserID"
                 :next-token="nextToken"
                 :createChatRoomCb="createChatRoom"/>
     </div>
     <div>
-
+      <ChatRoom :currentUserID="currentUserID"/>
     </div>
   </div>
 </template>
@@ -16,10 +17,11 @@
 <script>
 import {API, Auth, graphqlOperation} from "aws-amplify";
 import {getUser, listUsers} from "@/graphql/queries";
-import {createUser} from "@/graphql/mutations";
+import {createChatRoom, createChatRoomUser, createUser} from "@/graphql/mutations";
 import axios from 'axios';
 import * as R from 'ramda';
 import UserList from "@/components/UserList";
+import ChatRoom from "@/components/ChatRoom";
 
 /**
  *
@@ -35,10 +37,12 @@ const getRandomImage = async (size = 'thumbnail') => {
 export default {
   name: 'Chat',
   components: {
-    UserList
+    UserList,
+    ChatRoom
   },
   data() {
     return {
+      currentUserName: null,
       currentUserID: null,
       users: [],
       nextToken: null,
@@ -53,8 +57,39 @@ export default {
   },
   methods: {
     async createChatRoom(user) {
+      console.log(user);
       try {
-        console.log(user);
+        const newChatRoomData = await API.graphql(graphqlOperation(createChatRoom, {
+          input: {}
+        }));
+
+        if (!newChatRoomData.data) {
+          console.log('Failed to create chat room');
+          return;
+        }
+
+        const newChatRoom = newChatRoomData.data.createChatRoom;
+
+        await API.graphql(graphqlOperation(
+            createChatRoomUser,
+            {
+              input: {
+                userID: user.id,
+                chatRoomID: newChatRoom.id
+              }
+            })
+        );
+        
+        await API.graphql(graphqlOperation(
+            createChatRoomUser,
+            {
+              input: {
+                userID: this.currentUserID,
+                chatRoomID: newChatRoom.id
+              }
+            })
+        );
+
       } catch (e) {
         console.log(e);
       }
@@ -73,12 +108,13 @@ export default {
 
       if (userInfo) {
         this.currentUserID = userInfo.attributes.sub;
+        this.currentUserName = userInfo.username;
 
         const userData = await API.graphql(graphqlOperation(getUser, {
           id: this.currentUserID
         }));
 
-        if(userData.data.getUser) {
+        if (userData.data.getUser) {
           console.log('User is already exist!');
           return;
         }
@@ -100,12 +136,12 @@ export default {
 </script>
 
 <style scoped>
-  .chat-view {
-    display: flex;
-  }
+.chat-view {
+  display: flex;
+}
 
-  .chat-view__sidebar {
-    width: 250px;
-    border-right: 1px solid #ccc;
-  }
+.chat-view__sidebar {
+  width: 250px;
+  border-right: 1px solid #ccc;
+}
 </style>

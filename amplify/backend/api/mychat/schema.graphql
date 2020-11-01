@@ -15,7 +15,7 @@ type ChatRoomUser
   userID: ID!
   chatRoomID: ID!
   user: User @connection(fields: ["userID"])
-  chatRoom: User @connection(fields: ["chatRoomID"])
+  chatRoom: ChatRoom @connection(fields: ["chatRoomID"])
 }
 
 type ChatRoom @model {

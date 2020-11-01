@@ -28,24 +28,9 @@ export default {
       user: undefined,
       authState: undefined
     }
-  },
-  beforeDestroy() {
-    return onAuthUIStateChange;
   }
 }
 </script>
 
 <style>
-body {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-}
-
-.root {
-  height: 100vh;
-}
-
-.root__chat {}
 </style>

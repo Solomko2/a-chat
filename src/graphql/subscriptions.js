@@ -86,9 +86,6 @@ export const onCreateChatRoomUser = /* GraphQL */ `
       }
       chatRoom {
         id
-        name
-        imageUrl
-        status
         chatRoomUsers {
           nextToken
         }
@@ -119,9 +116,6 @@ export const onUpdateChatRoomUser = /* GraphQL */ `
       }
       chatRoom {
         id
-        name
-        imageUrl
-        status
         chatRoomUsers {
           nextToken
         }
@@ -152,9 +146,6 @@ export const onDeleteChatRoomUser = /* GraphQL */ `
       }
       chatRoom {
         id
-        name
-        imageUrl
-        status
         chatRoomUsers {
           nextToken
         }
