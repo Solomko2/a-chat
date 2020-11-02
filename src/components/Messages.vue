@@ -9,6 +9,10 @@
           :key="message.id"
           :stamp="message.updatedAt"
       />
+
+      <div class="message-pending">
+        <q-spinner-dots v-if="createMessagePending" color='primary' size='30px'/>
+      </div>
     </div>
   </div>
 </template>
@@ -24,6 +28,7 @@ export default {
   props: {
     messages: Array,
     currentUserID: String,
+    createMessagePending: Boolean
   }
 };
 </script>

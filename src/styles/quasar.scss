@@ -38,6 +38,15 @@ $headerHeight: 60px;
     height: calc(100vh - 155px);
     overflow: auto;
     box-sizing: border-box;
+    scroll-snap-type: y mandatory;
+
+    .q-message:last-child, .message-pending {
+      scroll-snap-align: end;
+    }
+
+    .message-pending {
+      height: 50px;
+    }
   }
 
   &__sender {

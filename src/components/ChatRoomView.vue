@@ -8,8 +8,10 @@
     </div>
     <div v-if="!pending && !createChatRoomPending">
       <div v-if="currentChatRoomID && currentUserID">
-        <Messages class="chat-room__messages"
+        <Messages id="chat-room-messages"
+                  class="chat-room__messages"
                   :currentUserID="currentUserID"
+                  :createMessagePending="createMessagePending"
                   :messages="messages" />
         <SendMessage class="chat-room__sender"
                      :currentUserID="currentUserID"
@@ -29,6 +31,7 @@ import {API, graphqlOperation} from "aws-amplify";
 import {createMessage, updateChatRoom} from "@/graphql/mutations";
 import {messagesByChatRoom} from "@/graphql/queries";
 import * as R from 'ramda';
+import {onCreateMessage} from "@/graphql/subscriptions";
 
 export default {
   name: "ChatRoomView",
@@ -46,8 +49,29 @@ export default {
     return {
       messages: [],
       pending: false,
-      updateChatRoomLastMessagePending: false
+      updateChatRoomLastMessagePending: false,
+      createMessagePending: false,
+      onCreateMessageSubscription: null
     };
+  },
+  created() {
+    const self = this;
+    this.onCreateMessageSubscription = API.graphql(
+        graphqlOperation(onCreateMessage)
+    ).subscribe({
+      next({ value }) {
+        const newMessage = value.data.onCreateMessage;
+
+        if(newMessage.chatRoomID !== self.currentChatRoomID) {
+          return;
+        }
+
+        self.messages = [...self.messages, newMessage];
+      }
+    });
+  },
+  beforeDestroy() {
+    this.onCreateMessageSubscription.unsubscribe();
   },
   watch: {
     currentChatRoomID(currentChatRoomID) {
@@ -71,14 +95,19 @@ export default {
       }
     },
     async createMessage(message) {
+      this.createMessagePending = true;
       try {
         const newMessageData = await API.graphql(graphqlOperation(createMessage, {
           input: message
         }));
 
+        this.createMessagePending = false;
+
         await this.updateChatRoomLastMessage(newMessageData.data.createMessage.id);
       } catch (e) {
         console.log('createMessage: ', e);
+      } finally {
+        this.createMessagePending = false;
       }
     },
     async fetchMessagesOfChatRoom(currentChatRoomID) {
