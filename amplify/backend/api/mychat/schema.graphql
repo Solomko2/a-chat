@@ -22,6 +22,8 @@ type ChatRoom @model {
   id: ID!
   chatRoomUsers: [ChatRoomUser] @connection(keyName: "byChatRoom", fields: ["id"])
   messages: [Message] @connection(keyName: "byChatRoom", fields: ["id"])
+  lastMessageID: ID!
+  lastMessage: Message @connection(fields: ["lastMessageID"])
 }
 
 type Message
@@ -30,10 +32,9 @@ type Message
   name: "byChatRoom",
   fields: ["chatRoomID", "createdAt"],
   queryField: "messagesByChatRoom"
-)
-{
+) {
   id: ID!
-  body: String!
+  body: String! @assert(condition: ".length() < 120")
   userID: ID!
   chatRoomID: ID!
   createdAt: String!

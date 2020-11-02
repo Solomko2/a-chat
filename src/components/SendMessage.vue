@@ -2,11 +2,11 @@
   <div class="full-width row justify-center items-end">
     <div class="full-width">
       <q-input
-          class="full-width"
+          class="message-text-field full-width"
           v-model="content"
           type="textarea"
           color="white"
-          label="Enter your message here.."
+          :label="label"
           @keyup.enter="sendMessage"
       />
       <q-btn
@@ -18,9 +18,6 @@
     </div>
   </div>
 </template>
-
-<style>
-</style>
 
 <script>
 
@@ -36,7 +33,11 @@ export default {
       content: "",
     };
   },
-  created() {},
+  computed: {
+    label() {
+      return this.content.length ? '' : 'Enter text'
+    }
+  },
   methods: {
     async sendMessage() {
       const { content, currentUserID, currentChatRoomID, onSendHandler } = this;
@@ -45,11 +46,13 @@ export default {
 
       const message = {
         body: content,
-        currentUserID,
-        currentChatRoomID
+        userID: currentUserID,
+        chatRoomID: currentChatRoomID,
       };
 
       onSendHandler(message);
+
+      this.content = '';
     },
   },
 };

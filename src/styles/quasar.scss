@@ -2,6 +2,19 @@
 @import '~quasar-styl';
 // @import '~quasar-addon-styl';
 
+$headerHeight: 60px;
+
+.root {
+
+  &__chat {
+    position: relative;
+
+    .sign-out-btn {
+
+    }
+  }
+}
+
 .user-list {
 
   &__item {
@@ -9,9 +22,92 @@
     &:hover {
       background-color: #ccc;
     }
+
+    &.active {
+      background-color: #1976d2;
+      color: #fff;
+    }
   }
 }
 
 .chat-room {
-  height: 100%;
+  height: calc(100vh - #{$headerHeight});
+  position: relative;
+
+  &__messages {
+    height: calc(100vh - 155px);
+    overflow: auto;
+    box-sizing: border-box;
+  }
+
+  &__sender {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-top: 1px solid #ccc;
+    background: #fff;
+  }
+}
+
+.chat-view {
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: $headerHeight;
+    background: #f3f3f3;
+    border-bottom: 1px solid #ccc;
+    padding-left: 16px;
+  }
+
+  &__room-content {
+    display: flex;
+  }
+
+  &__content {
+  }
+
+  &__sidebar {
+    height: calc(100vh - #{$headerHeight});
+    overflow: hidden;
+
+    .user-list {
+      height: calc(50vh - #{$headerHeight} / 2 - 1px);
+      overflow: auto;
+      position: relative;
+
+      &:not(:last-child) {
+        border-bottom: 1px solid #ccc;
+      }
+    }
+  }
+}
+
+.pending-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: #fff;
+  z-index: 2;
+}
+
+.message-text-field {
+  height: 50px;
+}
+
+.q-textarea.q-field--labeled .q-field__control-container {
+  padding-top: 16px;
+
+  .q-field__label {
+    padding-left: 10px;
+  }
 }

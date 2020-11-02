@@ -1,8 +1,11 @@
 <template>
   <q-list class="user-list">
     <q-item-label header>Chats:</q-item-label>
+    <slot></slot>
     <q-item clickable
-            class="user-list__item cursor-pointer" v-for="room in rooms"
+            v-for="room in rooms"
+            class="user-list__item cursor-pointer"
+            :class="{ active: room.chatRoomID === currentChatRoomID }"
             :key="room.id"
             v-on:click="onClickRoom(room)">
       <q-item-section avatar>
@@ -11,7 +14,7 @@
       </q-item-section>
       <q-item-section>
         <q-item-label>{{getUsersNames(currentUserID)(room)}}</q-item-label>
-        <q-item-label caption></q-item-label>
+        <q-item-label caption>{{getLastMessageUserName(room)}}: {{getLastMessage(room)}}</q-item-label>
       </q-item-section>
     </q-item>
   </q-list>
@@ -23,17 +26,18 @@ import * as R from 'ramda';
 export default {
   name: 'ChatRooms',
   props: {
-    onClickRoom: {
-      type: Function
-    },
-    rooms: {
-      type: Array
-    },
-    currentUserID: {
-      type: String
-    }
+    currentChatRoomID: String,
+    onClickRoom: Function,
+    rooms: Array,
+    currentUserID: String
   },
   computed: {
+    getLastMessageUserName: () => (room) => {
+      return R.path(['chatRoom', 'lastMessage', 'user', 'name'])(room);
+    },
+    getLastMessage: () => (room) => {
+      return R.path(['chatRoom', 'lastMessage', 'body'])(room);
+    },
     getUsersNames: () => (userId) => (room) => {
       return R.compose(
           R.join(', '),

@@ -1,6 +1,7 @@
 <template>
   <q-list class="user-list">
     <q-item-label header>Contacts:</q-item-label>
+    <slot></slot>
     <q-item clickable
             class="user-list__item cursor-pointer" v-for="user in users"
             :key="user.id"

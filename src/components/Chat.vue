@@ -1,20 +1,40 @@
 <template>
   <div class="chat-view">
-    <span v-if="pending">Loading ...</span>
-    <div class="chat-view__sidebar">
-      <span>{{currentUserName}}</span>
-      <UserList :users="users"
-                :currentUserID="currentUserID"
-                :next-token="nextToken"
-                :createChatRoomCb="createChatRoom"/>
+    <header class="chat-view__header">
+      <div>{{currentUserName}}</div>
+      <slot name="logotBtn"></slot>
+    </header>
+    <div class="chat-view__room-content">
+      <div class="chat-view__sidebar">
+        <UserList :users="users"
+                  :currentUserID="currentUserID"
+                  :next-token="nextToken"
+                  :createChatRoomCb="createChatRoom">
+        <span class="pending-screen" v-if="contactsPending">
+          <q-spinner-hourglass
+              color="primary"
+              size="2em"
+          />
+        </span>
+        </UserList>
 
-      <ChatRooms :on-click-room="moveToChatRoom"
-                 :currentUserID="currentUserID"
-                 :rooms="chatRooms" />
-    </div>
-    <div class="chat-view__content">
-      <ChatRoomView :currentUserID="currentUserID"
-                    :currentChatRoomID="currentChatRoomID" />
+        <ChatRooms :on-click-room="moveToChatRoom"
+                   :currentUserID="currentUserID"
+                   :currentChatRoomID="currentChatRoomID"
+                   :rooms="chatRooms">
+        <span class="pending-screen" v-if="userPending">
+          <q-spinner-hourglass
+              color="primary"
+              size="2em"
+          />
+        </span>
+        </ChatRooms>
+      </div>
+      <div class="chat-view__content">
+        <ChatRoomView :currentUserID="currentUserID"
+                      :createChatRoomPending="createChatRoomPending"
+                      :currentChatRoomID="currentChatRoomID" />
+      </div>
     </div>
   </div>
 </template>
@@ -29,6 +49,7 @@ import UserList from "@/components/UserList";
 import ChatRoomView from "@/components/ChatRoomView";
 import ChatRooms from "@/components/ChatRooms";
 import {getUser} from "@/components/queries";
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  *
@@ -55,16 +76,18 @@ export default {
       currentChatRoomID: null,
       users: [],
       nextToken: null,
-      pending: false,
+      userPending: false,
+      contactsPending: false,
+      createChatRoomPending: false,
       userData: {},
       userInfo: {}
     };
   },
   async created() {
-    this.pending = true;
+    this.contactsPending = true;
+
     await this.fetchUser();
     await this.fetchContacts();
-    this.pending = false;
   },
   computed: {
     chatRooms() {
@@ -79,9 +102,13 @@ export default {
       this.currentChatRoomID = room.chatRoomID;
     },
     async createChatRoom(user) {
+      this.createChatRoomPending = true;
+
       try {
         const newChatRoomData = await API.graphql(graphqlOperation(createChatRoom, {
-          input: {}
+          input: {
+            lastMessageID: uuidv4()
+          }
         }));
 
         if (!newChatRoomData.data) {
@@ -99,7 +126,9 @@ export default {
                 chatRoomID: newChatRoom.id
               }
             })
-        );
+        ).catch(e => {
+          console.log(1, e);
+        });
 
         await API.graphql(graphqlOperation(
             createChatRoomUser,
@@ -109,22 +138,38 @@ export default {
                 chatRoomID: newChatRoom.id
               }
             })
-        );
+        ).catch(e => {
+          console.log(2, e);
+        });
+
+        this.currentChatRoomID = newChatRoom.id;
+
+        this.userData = await API.graphql(graphqlOperation(getUser, {
+          id: this.currentUserID
+        }));
 
       } catch (e) {
         console.log('createChatRoom: ',  e);
+      } finally {
+        this.createChatRoomPending = false;
       }
     },
     async fetchContacts() {
+      this.contactsPending = true;
+
       try {
         const usersData = await API.graphql(graphqlOperation(listUsers));
         this.users = R.path(['data', 'listUsers', 'items'])(usersData);
         this.nextToken = R.path(['data', 'listUsers', 'nextToken'])(usersData);
       } catch (e) {
         console.log('fetchContacts', e);
+      } finally {
+        this.contactsPending = false;
       }
     },
     async fetchUser() {
+      this.userPending = true;
+
       try {
         this.userInfo = await Auth.currentAuthenticatedUser({bypassCache: true});
 
@@ -154,6 +199,8 @@ export default {
         }
       } catch (e) {
         console.log(`fetchUser: `, e);
+      } finally {
+        this.userPending = false;
       }
     }
   },

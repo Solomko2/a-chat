@@ -1,10 +1,13 @@
 <template>
-  <div class="root">
+  <div class="root main-container">
     <amplify-authenticator>
       <div class="root__chat" v-if="authState === 'signedin' && user">
-        <Chat />
+        <Chat>
+          <template v-slot:logotBtn>
+            <amplify-sign-out class="sign-out-btn"></amplify-sign-out>
+          </template>
+        </Chat>
       </div>
-      <amplify-sign-out></amplify-sign-out>
     </amplify-authenticator>
   </div>
 </template>
