@@ -27,7 +27,9 @@
 export default {
   name: "SendMessage",
   props: {
-    userId: String,
+    currentUserID: String,
+    currentChatRoomID: String,
+    onSendHandler: Function
   },
   data() {
     return {
@@ -36,7 +38,19 @@ export default {
   },
   created() {},
   methods: {
-    async sendMessage() {},
+    async sendMessage() {
+      const { content, currentUserID, currentChatRoomID, onSendHandler } = this;
+
+      if (!content) return;
+
+      const message = {
+        body: content,
+        currentUserID,
+        currentChatRoomID
+      };
+
+      onSendHandler(message);
+    },
   },
 };
 </script>

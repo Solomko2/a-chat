@@ -13,20 +13,22 @@
                  :rooms="chatRooms" />
     </div>
     <div class="chat-view__content">
-      <ChatRoom :currentUserID="currentUserID"/>
+      <ChatRoomView :currentUserID="currentUserID"
+                    :currentChatRoomID="currentChatRoomID" />
     </div>
   </div>
 </template>
 
 <script>
 import {API, Auth, graphqlOperation} from "aws-amplify";
-import {getUser, listUsers} from "@/graphql/queries";
+import {listUsers} from "@/graphql/queries";
 import {createChatRoom, createChatRoomUser, createUser} from "@/graphql/mutations";
 import axios from 'axios';
 import * as R from 'ramda';
 import UserList from "@/components/UserList";
-import ChatRoom from "@/components/ChatRoom";
+import ChatRoomView from "@/components/ChatRoomView";
 import ChatRooms from "@/components/ChatRooms";
+import {getUser} from "@/components/queries";
 
 /**
  *
@@ -43,13 +45,14 @@ export default {
   name: 'Chat',
   components: {
     UserList,
-    ChatRoom,
+    ChatRoomView,
     ChatRooms
   },
   data() {
     return {
       currentUserName: null,
       currentUserID: null,
+      currentChatRoomID: null,
       users: [],
       nextToken: null,
       pending: false,
@@ -72,8 +75,8 @@ export default {
     }
   },
   methods: {
-    moveToChatRoom(e) {
-      console.log('moveToChatRoom', e);
+    moveToChatRoom(room) {
+      this.currentChatRoomID = room.chatRoomID;
     },
     async createChatRoom(user) {
       try {
