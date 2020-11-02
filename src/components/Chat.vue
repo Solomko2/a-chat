@@ -7,8 +7,12 @@
                 :currentUserID="currentUserID"
                 :next-token="nextToken"
                 :createChatRoomCb="createChatRoom"/>
+
+      <ChatRooms :on-click-room="moveToChatRoom"
+                 :currentUserID="currentUserID"
+                 :rooms="chatRooms" />
     </div>
-    <div>
+    <div class="chat-view__content">
       <ChatRoom :currentUserID="currentUserID"/>
     </div>
   </div>
@@ -22,6 +26,7 @@ import axios from 'axios';
 import * as R from 'ramda';
 import UserList from "@/components/UserList";
 import ChatRoom from "@/components/ChatRoom";
+import ChatRooms from "@/components/ChatRooms";
 
 /**
  *
@@ -38,7 +43,8 @@ export default {
   name: 'Chat',
   components: {
     UserList,
-    ChatRoom
+    ChatRoom,
+    ChatRooms
   },
   data() {
     return {
@@ -47,17 +53,29 @@ export default {
       users: [],
       nextToken: null,
       pending: false,
+      userData: {},
+      userInfo: {}
     };
   },
   async created() {
     this.pending = true;
     await this.fetchUser();
-    await this.fetchUsers();
+    await this.fetchContacts();
     this.pending = false;
   },
+  computed: {
+    chatRooms() {
+      return R.compose(
+          R.path(['data', 'getUser', 'chatRoomUsers', 'items']),
+          R.defaultTo([])
+      )(this.userData)
+    }
+  },
   methods: {
+    moveToChatRoom(e) {
+      console.log('moveToChatRoom', e);
+    },
     async createChatRoom(user) {
-      console.log(user);
       try {
         const newChatRoomData = await API.graphql(graphqlOperation(createChatRoom, {
           input: {}
@@ -79,7 +97,7 @@ export default {
               }
             })
         );
-        
+
         await API.graphql(graphqlOperation(
             createChatRoomUser,
             {
@@ -91,44 +109,48 @@ export default {
         );
 
       } catch (e) {
-        console.log(e);
+        console.log('createChatRoom: ',  e);
       }
     },
-    async fetchUsers() {
+    async fetchContacts() {
       try {
         const usersData = await API.graphql(graphqlOperation(listUsers));
         this.users = R.path(['data', 'listUsers', 'items'])(usersData);
         this.nextToken = R.path(['data', 'listUsers', 'nextToken'])(usersData);
       } catch (e) {
-        console.log(e);
+        console.log('fetchContacts', e);
       }
     },
     async fetchUser() {
-      const userInfo = await Auth.currentAuthenticatedUser({bypassCache: true});
+      try {
+        this.userInfo = await Auth.currentAuthenticatedUser({bypassCache: true});
 
-      if (userInfo) {
-        this.currentUserID = userInfo.attributes.sub;
-        this.currentUserName = userInfo.username;
+        if (this.userInfo) {
+          this.currentUserID = this.userInfo.attributes.sub;
+          this.currentUserName = this.userInfo.username;
 
-        const userData = await API.graphql(graphqlOperation(getUser, {
-          id: this.currentUserID
-        }));
+          this.userData = await API.graphql(graphqlOperation(getUser, {
+            id: this.currentUserID
+          }));
 
-        if (userData.data.getUser) {
-          console.log('User is already exist!');
-          return;
+          if (this.userData.data.getUser) {
+            console.log('User is already exist!');
+            return;
+          }
+
+          const newUser = {
+            id: this.currentUserID,
+            name: this.userInfo.username,
+            imageUrl: await getRandomImage(),
+            status: 'Some status',
+          };
+
+          await API.graphql(graphqlOperation(createUser, {
+            input: newUser
+          }))
         }
-
-        const newUser = {
-          id: this.currentUserID,
-          name: userInfo.username,
-          imageUrl: await getRandomImage(),
-          status: 'Some status',
-        };
-
-        await API.graphql(graphqlOperation(createUser, {
-          input: newUser
-        }))
+      } catch (e) {
+        console.log(`fetchUser: `, e);
       }
     }
   },
@@ -143,5 +165,10 @@ export default {
 .chat-view__sidebar {
   width: 250px;
   border-right: 1px solid #ccc;
+  flex-shrink: 0;
+}
+
+.chat-view__content {
+  width: 100%;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex">
+  <div class="chat-room flex column justify-between">
     <Messages v-if="currentUserID" v-bind:user-id="currentUserID"/>
     <SendMessage v-if="currentUserID" v-bind:user-id="currentUserID" />
   </div>
