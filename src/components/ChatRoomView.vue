@@ -8,11 +8,10 @@
     </div>
     <div v-if="!pending && !createChatRoomPending">
       <div v-if="currentChatRoomID && currentUserID">
-        <Messages id="chat-room-messages"
-                  class="chat-room__messages"
+        <Messages class="chat-room__messages"
                   :currentUserID="currentUserID"
                   :createMessagePending="createMessagePending"
-                  :messages="messages" />
+                  :messages="messages"/>
         <SendMessage class="chat-room__sender"
                      :currentUserID="currentUserID"
                      :currentChatRoomID="currentChatRoomID"
@@ -51,7 +50,7 @@ export default {
       pending: false,
       updateChatRoomLastMessagePending: false,
       createMessagePending: false,
-      onCreateMessageSubscription: null
+      onCreateMessageSubscription: null,
     };
   },
   created() {
@@ -59,10 +58,10 @@ export default {
     this.onCreateMessageSubscription = API.graphql(
         graphqlOperation(onCreateMessage)
     ).subscribe({
-      next({ value }) {
+      next({value}) {
         const newMessage = value.data.onCreateMessage;
 
-        if(newMessage.chatRoomID !== self.currentChatRoomID) {
+        if (newMessage.chatRoomID !== self.currentChatRoomID) {
           return;
         }
 

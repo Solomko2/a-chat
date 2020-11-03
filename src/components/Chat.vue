@@ -50,6 +50,7 @@ import ChatRoomView from "@/components/ChatRoomView";
 import ChatRooms from "@/components/ChatRooms";
 import {getUser} from "@/components/queries";
 import { v4 as uuidv4 } from 'uuid';
+import {onCreateChatRoomUser, onUpdateChatRoom} from "@/graphql/subscriptions";
 
 /**
  *
@@ -80,24 +81,66 @@ export default {
       contactsPending: false,
       createChatRoomPending: false,
       userData: {},
-      userInfo: {}
+      userInfo: {},
+      onCreateChatRoomUserSubscription: null,
+      onUpdateChatRoomSubscription: null
     };
   },
   async created() {
+    const self = this;
     this.contactsPending = true;
 
     await this.fetchUser();
     await this.fetchContacts();
+
+    this.onCreateChatRoomUserSubscription = API.graphql(
+        graphqlOperation(onCreateChatRoomUser)
+    ).subscribe({
+      next({value}) {
+        if(value.data.onCreateChatRoomUser.userID !== self.currentUserID) {
+          return;
+        }
+
+        self.updateUserData();
+      }
+    });
+
+    this.onUpdateChatRoomSubscription = API.graphql(
+        graphqlOperation(onUpdateChatRoom)
+    ).subscribe({
+      next({value}) {
+        const updatedChatRoom = value.data.onUpdateChatRoom;
+        const chatUsersIds = R.compose(
+            R.map(R.prop('userID')),
+            R.path(['chatRoomUsers', 'items'])
+        )(updatedChatRoom);
+
+        if(!R.includes(self.currentUserID, chatUsersIds)) {
+          return;
+        }
+
+        self.updateUserData();
+      }
+    });
+  },
+  beforeDestroy() {
+    this.onCreateChatRoomUserSubscription.unsubscribe();
+    this.onUpdateChatRoomSubscription.unsubscribe();
   },
   computed: {
     chatRooms() {
       return R.compose(
-          R.path(['data', 'getUser', 'chatRoomUsers', 'items']),
-          R.defaultTo([])
+          R.defaultTo([]),
+          R.path(['chatRoomUsers', 'items']),
       )(this.userData)
     }
   },
   methods: {
+    async updateUserData() {
+      this.userData = await API.graphql(graphqlOperation(getUser, {
+        id: this.currentUserID
+      })).then(res => res.data.getUser);
+    },
     moveToChatRoom(room) {
       this.currentChatRoomID = room.chatRoomID;
     },
@@ -144,10 +187,6 @@ export default {
 
         this.currentChatRoomID = newChatRoom.id;
 
-        this.userData = await API.graphql(graphqlOperation(getUser, {
-          id: this.currentUserID
-        }));
-
       } catch (e) {
         console.log('createChatRoom: ',  e);
       } finally {
@@ -158,7 +197,10 @@ export default {
       this.contactsPending = true;
 
       try {
-        const usersData = await API.graphql(graphqlOperation(listUsers));
+        const usersData = await API.graphql(graphqlOperation(listUsers, {
+          filter: {not: {id: {eq: this.currentUserID}}}
+        }));
+
         this.users = R.path(['data', 'listUsers', 'items'])(usersData);
         this.nextToken = R.path(['data', 'listUsers', 'nextToken'])(usersData);
       } catch (e) {
@@ -177,11 +219,9 @@ export default {
           this.currentUserID = this.userInfo.attributes.sub;
           this.currentUserName = this.userInfo.username;
 
-          this.userData = await API.graphql(graphqlOperation(getUser, {
-            id: this.currentUserID
-          }));
+          await this.updateUserData();
 
-          if (this.userData.data.getUser) {
+          if (this.userData) {
             console.log('User is already exist!');
             return;
           }

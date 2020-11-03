@@ -1,5 +1,5 @@
 <template>
-  <div class="full-width row justify-center">
+  <div class="full-width row justify-center" v-chat-scroll>
     <div class="col-11">
       <q-chat-message
           v-for="message in messages"
@@ -24,7 +24,8 @@
 
 export default {
   name: "Messages",
-  components: {},
+  components: {
+  },
   props: {
     messages: Array,
     currentUserID: String,
