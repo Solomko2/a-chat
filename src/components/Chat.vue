@@ -156,7 +156,7 @@ export default {
     },
     async createChatRoom(user) {
       this.createChatRoomPending = true;
-      
+
       try {
         const newChatRoomData = await API.graphql(graphqlOperation(createChatRoom, {
           input: {
