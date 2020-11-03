@@ -50,7 +50,7 @@ import ChatRoomView from "@/components/ChatRoomView";
 import ChatRooms from "@/components/ChatRooms";
 import {getUser} from "@/components/queries";
 import { v4 as uuidv4 } from 'uuid';
-import {onCreateChatRoomUser, onUpdateChatRoom} from "@/graphql/subscriptions";
+import {onCreateChatRoomUser, onCreateUser, onUpdateChatRoom} from "@/graphql/subscriptions";
 
 /**
  *
@@ -83,7 +83,8 @@ export default {
       userData: {},
       userInfo: {},
       onCreateChatRoomUserSubscription: null,
-      onUpdateChatRoomSubscription: null
+      onUpdateChatRoomSubscription: null,
+      onCreateUserSubscription: null
     };
   },
   async created() {
@@ -92,6 +93,14 @@ export default {
 
     await this.fetchUser();
     await this.fetchContacts();
+
+    this.onCreateUserSubscription = API.graphql(
+        graphqlOperation(onCreateUser)
+    ).subscribe({
+      next({value}) {
+        self.users.push(value.data.onCreateUser);
+      }
+    });
 
     this.onCreateChatRoomUserSubscription = API.graphql(
         graphqlOperation(onCreateChatRoomUser)
@@ -126,6 +135,7 @@ export default {
   beforeDestroy() {
     this.onCreateChatRoomUserSubscription.unsubscribe();
     this.onUpdateChatRoomSubscription.unsubscribe();
+    this.onCreateUserSubscription.unsubscribe();
   },
   computed: {
     chatRooms() {
